@@ -1,0 +1,19 @@
+package com.project.uni_meta.services;
+
+import com.project.uni_meta.dtos.UpdateUserDTO;
+import com.project.uni_meta.dtos.UserDTO;
+import com.project.uni_meta.exceptions.DataNotFoundException;
+import com.project.uni_meta.exceptions.PermissionDenyException;
+import com.project.uni_meta.models.User;
+
+import java.util.List;
+import java.util.Map;
+
+public interface IUserService {
+    User CreateUser(UserDTO userDTO) throws DataNotFoundException, PermissionDenyException;
+    Map<String, Object> Login(String username, String password) throws DataNotFoundException;
+
+    public List<User> getAllUsers() throws Exception;
+
+    public User updateUserInforByAdmin(Long userId, UpdateUserDTO updatedUserDTO) throws Exception;
+}
