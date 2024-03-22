@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -53,6 +54,18 @@ public class UserController {
             return ResponseEntity.ok(response);
         } catch (DataNotFoundException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/details")
+    public ResponseEntity<?> getUserById(Long id, @RequestHeader("Authorization") String authorizationHeader){
+        try {
+            String extractedToken = authorizationHeader.substring(7);
+            User userDetailsFromToken = userService.getUserDetailsFromToken(extractedToken);
+//            Optional<User> user = userService.getUserById(id);
+            return ResponseEntity.ok(userDetailsFromToken);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

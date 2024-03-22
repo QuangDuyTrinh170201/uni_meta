@@ -49,6 +49,7 @@ public class UserService implements IUserService{
         User newUser = User.builder()
                 .username(userDTO.getUserName())
                 .password(userDTO.getPassword())
+                .email(userDTO.getEmail())
                 .active(true)
                 .build();
 
@@ -88,7 +89,8 @@ public class UserService implements IUserService{
         response.put("token", jwtTokenUtil.generateToken(existingUser));
         response.put("roleId", existingUser.getRole().getId());
         response.put("roleName", existingUser.getRole().getName()); // Assuming Role is a field in User entity
-        if(existingUser.getRole().getId() != 5){
+        Long checkFaculty = existingUser.getRole().getId();
+        if(checkFaculty == 2 || checkFaculty == 3 || checkFaculty == 4){
             response.put("facultyId", existingUser.getFaculty().getId());
             response.put("facultyName", existingUser.getFaculty().getName());
         }
@@ -105,6 +107,34 @@ public class UserService implements IUserService{
             return users;
         } catch (Exception e) {
             throw new Exception("Failed to retrieve users: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public User getUserDetailsFromToken(String token) throws Exception {
+        if(jwtTokenUtil.isTokenExpired(token)) {
+            throw new Exception("Token is expired");
+        }
+        String username = jwtTokenUtil.extractUsername(token);
+        Optional<User> user = userRepository.findByUsername(username);
+
+        if (user.isPresent()) {
+            return user.get();
+        } else {
+            throw new Exception("User not found");
+        }
+    }
+
+    @Override
+    public Optional<User> getUserById(Long id) throws Exception{
+        try{
+            Optional<User> user = userRepository.findById(id);
+            if(user.isEmpty()){
+                throw new DataNotFoundException("No user found");
+            }
+            return user;
+        }catch (Exception e){
+            throw new Exception("Failed to retrieve user: " + e.getMessage());
         }
     }
 
