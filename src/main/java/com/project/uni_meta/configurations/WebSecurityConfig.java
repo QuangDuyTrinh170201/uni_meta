@@ -40,7 +40,10 @@ public class WebSecurityConfig {
                             ).permitAll()
                             .requestMatchers(GET,
                                     String.format("%s/roles**", apiPrefix),
-                                    String.format("%s/faculties**", apiPrefix)
+                                    String.format("%s/faculties**", apiPrefix),
+                                    String.format("%s/academic_years**", apiPrefix),
+                                    String.format("%s/closures**", apiPrefix),
+                                    String.format("%s/articles/**", apiPrefix)
                             ).permitAll()
                             .anyRequest().authenticated();
                 });
