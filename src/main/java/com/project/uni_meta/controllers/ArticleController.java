@@ -1,18 +1,12 @@
 package com.project.uni_meta.controllers;
 
+import com.aspose.words.Document;
+import com.aspose.words.SaveFormat;
 import com.project.uni_meta.dtos.ArticleDTO;
-import com.project.uni_meta.dtos.ClosureDTO;
 import com.project.uni_meta.exceptions.DataNotFoundException;
 import com.project.uni_meta.models.Article;
-import com.project.uni_meta.models.Closure;
 import com.project.uni_meta.services.IArticleService;
 import lombok.RequiredArgsConstructor;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,8 +17,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -83,12 +76,12 @@ public class ArticleController {
         return contentType != null && (contentType.equals("application/pdf") || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
     }
 
-    @GetMapping("/files/{fileName}")
-//    @PreAuthorize("hasAnyRole('ROLE_STUDENT', 'ROLE_GUEST', 'ROLE_MARKETING_COORDINATOR', 'ROLE_MARKETING_MANAGER', 'ROLE_ADMIN')")
+    @GetMapping("/downloads/{fileName}")
     public ResponseEntity<?> viewFile(@PathVariable String fileName) {
         try {
             Path filePath = Paths.get("uploads", fileName);
             UrlResource resource = new UrlResource(filePath.toUri());
+
 
             if (resource.exists()) {
                 // Xác định loại mime của file dựa trên phần mở rộng của tên file
@@ -123,4 +116,39 @@ public class ArticleController {
         // Mặc định trả về "application/octet-stream" nếu không tìm thấy phần mở rộng phù hợp
         return "application/octet-stream";
     }
+
+    @GetMapping("/views/{fileName}")
+    public ResponseEntity<?> viewFileInMarketing(@PathVariable String fileName) {
+        try {
+            Path filePath = Paths.get("uploads", fileName);
+            UrlResource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists()) {
+                // Xác định loại mime của file dựa trên phần mở rộng của tên file
+                MediaType mediaType = MediaType.parseMediaType(
+                        determineMimeType(fileName));
+                    // Nếu là file docx, chuyển đổi sang PDF và trả về
+                    File convertedFile = convertDocxToPdf(filePath);
+                    UrlResource pdfResource = new UrlResource(convertedFile.toURI());
+
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.APPLICATION_PDF)
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdfResource.getFilename() + "\"")
+                            .body(pdfResource);
+            }
+
+            return ResponseEntity.badRequest().body("Ops, something's wrong T.T");
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // Chuyển đổi file docx sang pdf
+    private File convertDocxToPdf(Path docxFilePath) throws Exception {
+        Document doc = new Document(docxFilePath.toString());
+        File pdfFile = Files.createTempFile(UUID.randomUUID().toString(), ".pdf").toFile();
+        doc.save(pdfFile.getAbsolutePath(), SaveFormat.PDF);
+        return pdfFile;
+    }
+
 }
