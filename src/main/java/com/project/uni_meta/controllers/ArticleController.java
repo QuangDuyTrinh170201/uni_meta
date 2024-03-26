@@ -3,8 +3,10 @@ package com.project.uni_meta.controllers;
 import com.aspose.words.Document;
 import com.aspose.words.SaveFormat;
 import com.project.uni_meta.dtos.ArticleDTO;
+import com.project.uni_meta.dtos.ArticleImageDTO;
 import com.project.uni_meta.exceptions.DataNotFoundException;
 import com.project.uni_meta.models.Article;
+import com.project.uni_meta.models.Image;
 import com.project.uni_meta.services.IArticleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.UrlResource;
@@ -22,6 +24,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -71,7 +75,6 @@ public class ArticleController {
     }
 
     private boolean isDocumentFile(MultipartFile file) {
-        // Kiểm tra loại tệp có phải là văn bản không
         String contentType = file.getContentType();
         return contentType != null && (contentType.equals("application/pdf") || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
     }
@@ -84,7 +87,6 @@ public class ArticleController {
 
 
             if (resource.exists()) {
-                // Xác định loại mime của file dựa trên phần mở rộng của tên file
                 MediaType mediaType = MediaType.parseMediaType(
                         determineMimeType(fileName));
 
@@ -100,7 +102,6 @@ public class ArticleController {
         }
     }
 
-    // Xác định loại MIME của file dựa trên phần mở rộng của tên file
     private String determineMimeType(String fileName) {
         String[] parts = fileName.split("\\.");
         if (parts.length > 1) {
@@ -110,10 +111,9 @@ public class ArticleController {
                     return "application/pdf";
                 case "docx":
                     return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-                // Thêm các case cho các loại MIME khác nếu cần
             }
         }
-        // Mặc định trả về "application/octet-stream" nếu không tìm thấy phần mở rộng phù hợp
+        // Default "application/octet-stream" if do not find the path
         return "application/octet-stream";
     }
 
@@ -149,6 +149,88 @@ public class ArticleController {
         File pdfFile = Files.createTempFile(UUID.randomUUID().toString(), ".pdf").toFile();
         doc.save(pdfFile.getAbsolutePath(), SaveFormat.PDF);
         return pdfFile;
+    }
+
+    @PostMapping(value = "uploads/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_STUDENT')")
+    public ResponseEntity<?> uploadImages(@PathVariable("id") Long articleId, @ModelAttribute List<MultipartFile> files){
+        try {
+            Article existingArticle = articleService.getArticleById(articleId);
+            files = files == null ? new ArrayList<MultipartFile>() : files;
+            if(files.size() > Image.MAXIMUM_IMAGES_PER_PRODUCT){
+                return ResponseEntity.badRequest().body("You can only upload maximum 3 images");
+            }
+            List<Image> articleImages = new ArrayList<>();
+            String firstImageName = null; // Lưu tên của ảnh đầu tiên
+            for(MultipartFile file : files){
+                if(file.getSize() == 0){
+                    continue;
+                }
+                // kiểm tra kích thước file và định dạng file
+                if(file.getSize() > 10 * 1024 * 1024){
+                    // kích thước > 10 mb
+                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body("File is too large, maximum file size is 10MB");
+                }
+                String contentType = file.getContentType();
+                if(contentType == null || !contentType.startsWith("image/")){
+                    return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("File must be an image");
+                }
+                // lưu file và cập nhật thumbnail trong DTO
+                String filename = storeImageFile(file);
+                // lưu vào đối tượng product trong db
+                Image articleImage = articleService.createArticleImage(existingArticle.getId(),
+                        ArticleImageDTO
+                                .builder()
+                                .imageUrl(filename)
+                                .build());
+                articleImages.add(articleImage);
+            }
+            return ResponseEntity.ok().body(articleImages);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    private String storeImageFile(MultipartFile file)throws IOException{
+        if(!isImageFile(file) || file.getOriginalFilename() == null){
+            throw new IOException("Invalid image format");
+        }
+        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+        //thêm UUID vào trước tên file để đảm bảo tên file là duy nhất
+        String uniqueFileName = UUID.randomUUID().toString() + "_" + filename;
+        java.nio.file.Path uploadDir = Paths.get("uploads");
+        if(!Files.exists(uploadDir)){
+            Files.createDirectories(uploadDir);
+        }
+        //Đường dẫn đến file đích
+        Path destination = Paths.get(uploadDir.toString(), uniqueFileName);
+        Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+        return uniqueFileName;
+    }
+
+    private boolean isImageFile(MultipartFile file){
+        String contentType = file.getContentType();
+        return contentType != null && contentType.startsWith("image/");
+    }
+
+    @GetMapping("/images/{imageName}")
+    public ResponseEntity<?> viewImage(@PathVariable String imageName){
+        try{
+            Path imagePath = Paths.get("uploads/"+imageName);
+            UrlResource resource = new UrlResource(imagePath.toUri());
+
+            if(resource.exists()){
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(resource);
+            }else{
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(new UrlResource(Paths.get("uploads/notfound.jpg").toUri()));
+            }
+        }catch (Exception e){
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }
