@@ -2,16 +2,21 @@ package com.project.uni_meta.services;
 
 import com.project.uni_meta.dtos.ArticleDTO;
 import com.project.uni_meta.dtos.ArticleImageDTO;
+import com.project.uni_meta.dtos.DataMailDTO;
+import com.project.uni_meta.dtos.MailDTO;
 import com.project.uni_meta.exceptions.DataNotFoundException;
 import com.project.uni_meta.models.*;
 import com.project.uni_meta.repositories.*;
+import com.project.uni_meta.utils.Const;
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -22,6 +27,7 @@ public class ArticleService implements IArticleService{
     private final FacultyRepository facultyRepository;
     private final UserRepository userRepository;
     private final ImageRepository imageRepository;
+    private final IMailService mailService;
     @Override
     public List<Article> getAllArticles() {
         return articleRepository.findAll();
@@ -97,5 +103,31 @@ public class ArticleService implements IArticleService{
     @Override
     public void deleteArticle(Long id) throws Exception {
 
+    }
+
+    @Override
+    public boolean sendMail(MailDTO mailDTO) {
+        // xử lý trc khi tạo tt
+        try {
+            DataMailDTO dataMail = new DataMailDTO();
+
+            if(mailDTO.getFacultyId() == 1){
+                dataMail.setTo("marketingcoordinatorit@gmail.com");
+            }
+            if(mailDTO.getFacultyId() == 2){
+                dataMail.setTo("marketingcoordinatorbusiness@gmail.com");
+            }
+            dataMail.setSubject(Const.SEND_EMAIL_SUBJECT.CLIENT_NOTIFICATION);
+
+            Map<String, Object> props = new HashMap<>();
+            props.put("url", mailDTO.getUrl());
+            dataMail.setProps(props);
+
+            mailService.sendHtmlMail(dataMail, Const.TEMPLATE_FILE_NAME.CLIENT_NOTIFICATION);
+            return true;
+        } catch (MessagingException exp){
+            exp.printStackTrace();
+        }
+        return false;
     }
 }

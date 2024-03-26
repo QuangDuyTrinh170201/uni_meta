@@ -4,6 +4,7 @@ import com.aspose.words.Document;
 import com.aspose.words.SaveFormat;
 import com.project.uni_meta.dtos.ArticleDTO;
 import com.project.uni_meta.dtos.ArticleImageDTO;
+import com.project.uni_meta.dtos.MailDTO;
 import com.project.uni_meta.exceptions.DataNotFoundException;
 import com.project.uni_meta.models.Article;
 import com.project.uni_meta.models.Image;
@@ -231,6 +232,14 @@ public class ArticleController {
         }catch (Exception e){
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/sendMail")
+    @PreAuthorize("hasRole('ROLE_STUDENT')")
+    public ResponseEntity<Boolean> create(
+            @RequestBody MailDTO mailDTO
+    ) {
+        return ResponseEntity.ok(articleService.sendMail(mailDTO));
     }
 
 }

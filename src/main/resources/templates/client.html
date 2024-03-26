@@ -1,0 +1,22 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'/>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-size: 48px;
+        }
+    </style>
+</head>
+<body>
+    <p>Xin chào Marketing Coordinator</p>
+    <p> Thông Báo Duyệt Bài Cho Sinh Viên! </p>
+    <p>Có bài viết mới được cập nhật, nhấn vào link để duyệt bài viết</p>
+    <p th:text="${'Duyệt bài tại đây: ' + url}"></p>
+
+    <p style="color: red">Lưu ý: Bài viết mới chỉ có thể được duyệt trong 7 ngày, sau 7 ngày thì bài viết sẽ tự động bị xoá khỏi hệ thống!</p>
+    <p>Đây là email tự động vui lòng không trả lời.</p>
+</body>
+</html>

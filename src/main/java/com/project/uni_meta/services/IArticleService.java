@@ -2,6 +2,7 @@ package com.project.uni_meta.services;
 
 import com.project.uni_meta.dtos.ArticleDTO;
 import com.project.uni_meta.dtos.ArticleImageDTO;
+import com.project.uni_meta.dtos.MailDTO;
 import com.project.uni_meta.exceptions.DataNotFoundException;
 import com.project.uni_meta.models.Article;
 import com.project.uni_meta.models.Image;
@@ -21,4 +22,6 @@ public interface IArticleService {
     public Image createArticleImage(Long articleId, ArticleImageDTO articleImageDTO) throws Exception;
 
     public Article getArticleById(long productId) throws Exception;
+
+    boolean sendMail(MailDTO mailDTO);
 }
