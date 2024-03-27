@@ -7,10 +7,13 @@ import com.project.uni_meta.dtos.MailDTO;
 import com.project.uni_meta.exceptions.DataNotFoundException;
 import com.project.uni_meta.models.*;
 import com.project.uni_meta.repositories.*;
+import com.project.uni_meta.responses.ArticleResponse;
 import com.project.uni_meta.utils.Const;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,8 +32,10 @@ public class ArticleService implements IArticleService{
     private final ImageRepository imageRepository;
     private final IMailService mailService;
     @Override
-    public List<Article> getAllArticles() {
-        return articleRepository.findAll();
+    public Page<ArticleResponse> getAllArticles(String keyword, PageRequest pageRequest) {
+        Page<Article> articlePage;
+        articlePage = articleRepository.searchArticles(keyword, pageRequest);
+        return articlePage.map(ArticleResponse::fromArticle);
     }
 
     @Override
@@ -97,7 +102,25 @@ public class ArticleService implements IArticleService{
 
     @Override
     public Article updateArticle(Long id, ArticleDTO articleDTO) throws Exception {
-        return null;
+        Article existingArticle = articleRepository.getById(id);
+
+        AcademicYear exAcademicYear = academicYearRepository.findById(articleDTO.getAcademicId())
+                .orElseThrow(() -> new DataNotFoundException("Cannot find this academic year with this id: " +articleDTO.getAcademicId()));
+        Faculty exFaculty = facultyRepository.findById(articleDTO.getFacultyId())
+                .orElseThrow(() -> new DataNotFoundException("Cannot find this faculty with this id: " +articleDTO.getFacultyId()));
+        User exUser = userRepository.findById(articleDTO.getUserId())
+                .orElseThrow(() -> new DataNotFoundException("Cannot find this academic year with this id: " +articleDTO.getUserId()));
+        String oldFile = existingArticle.getFileName();
+        Long oldView = existingArticle.getView();
+        LocalDateTime submissionDate = articleDTO.getSubmissionDate() == null ? LocalDateTime.now() : articleDTO.getSubmissionDate();
+
+        existingArticle.setName(articleDTO.getName());
+        existingArticle.setDescription(articleDTO.getDescription());
+        existingArticle.setStatus("pending");
+        existingArticle.setView(oldView);
+        existingArticle.setFileName(oldFile);
+        existingArticle.setSubmissionDate(submissionDate);
+        return articleRepository.save(existingArticle);
     }
 
     @Override
@@ -117,6 +140,9 @@ public class ArticleService implements IArticleService{
             if(mailDTO.getFacultyId() == 2){
                 dataMail.setTo("marketingcoordinatorbusiness@gmail.com");
             }
+            if(mailDTO.getFacultyId() == 3){
+                dataMail.setTo("marketingcoordinatordesign@gmail.com");
+            }
             dataMail.setSubject(Const.SEND_EMAIL_SUBJECT.CLIENT_NOTIFICATION);
 
             Map<String, Object> props = new HashMap<>();
@@ -129,5 +155,10 @@ public class ArticleService implements IArticleService{
             exp.printStackTrace();
         }
         return false;
+    }
+
+    @Override
+    public List<Image> getImagesByArticleId(Long articleId){
+        return imageRepository.findByArticleId(articleId);
     }
 }

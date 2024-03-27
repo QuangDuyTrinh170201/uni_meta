@@ -6,11 +6,14 @@ import com.project.uni_meta.dtos.MailDTO;
 import com.project.uni_meta.exceptions.DataNotFoundException;
 import com.project.uni_meta.models.Article;
 import com.project.uni_meta.models.Image;
+import com.project.uni_meta.responses.ArticleResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
 public interface IArticleService {
-    List<Article> getAllArticles();
+    public Page<ArticleResponse> getAllArticles(String keyword, PageRequest pageRequest);
 
     Article addArticle(ArticleDTO articleDTO) throws Exception;
 
@@ -24,4 +27,6 @@ public interface IArticleService {
     public Article getArticleById(long productId) throws Exception;
 
     boolean sendMail(MailDTO mailDTO);
+
+    List<Image> getImagesByArticleId(Long articleId);
 }

@@ -8,9 +8,14 @@ import com.project.uni_meta.dtos.MailDTO;
 import com.project.uni_meta.exceptions.DataNotFoundException;
 import com.project.uni_meta.models.Article;
 import com.project.uni_meta.models.Image;
+import com.project.uni_meta.responses.ArticleListResponse;
+import com.project.uni_meta.responses.ArticleResponse;
 import com.project.uni_meta.services.IArticleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -44,6 +49,23 @@ public class ArticleController {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ArticleListResponse> getAllArticles(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int limit) {
+
+        PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("id").ascending());
+        Page<ArticleResponse> articlePage;
+        articlePage = articleService.getAllArticles(keyword, pageRequest);
+        int totalPages = articlePage.getTotalPages();
+        List<ArticleResponse> articles = articlePage.getContent();
+        return ResponseEntity.ok(ArticleListResponse.builder()
+                .articles(articles)
+                .totalPages(totalPages)
+                .build());
     }
 
     @PostMapping(value = "/{articleId}/file")
