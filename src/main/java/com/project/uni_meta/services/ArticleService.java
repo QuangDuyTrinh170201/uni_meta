@@ -17,10 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -101,31 +98,52 @@ public class ArticleService implements IArticleService{
 
 
     @Override
+    @Transactional
     public Article updateArticle(Long id, ArticleDTO articleDTO) throws Exception {
         Article existingArticle = articleRepository.getById(id);
 
-        AcademicYear exAcademicYear = academicYearRepository.findById(articleDTO.getAcademicId())
-                .orElseThrow(() -> new DataNotFoundException("Cannot find this academic year with this id: " +articleDTO.getAcademicId()));
-        Faculty exFaculty = facultyRepository.findById(articleDTO.getFacultyId())
-                .orElseThrow(() -> new DataNotFoundException("Cannot find this faculty with this id: " +articleDTO.getFacultyId()));
-        User exUser = userRepository.findById(articleDTO.getUserId())
-                .orElseThrow(() -> new DataNotFoundException("Cannot find this academic year with this id: " +articleDTO.getUserId()));
-        String oldFile = existingArticle.getFileName();
-        Long oldView = existingArticle.getView();
-        LocalDateTime submissionDate = articleDTO.getSubmissionDate() == null ? LocalDateTime.now() : articleDTO.getSubmissionDate();
+        // Kiểm tra và cập nhật AcademicYear
+        if (articleDTO.getAcademicId() != null) {
+            AcademicYear exAcademicYear = academicYearRepository.findById(articleDTO.getAcademicId())
+                    .orElseThrow(() -> new DataNotFoundException("Cannot find this academic year with this id: " + articleDTO.getAcademicId()));
+            existingArticle.setAcademicYear(exAcademicYear);
+        }
 
-        existingArticle.setName(articleDTO.getName());
-        existingArticle.setDescription(articleDTO.getDescription());
-        existingArticle.setStatus("pending");
-        existingArticle.setView(oldView);
-        existingArticle.setFileName(oldFile);
-        existingArticle.setSubmissionDate(submissionDate);
+        // Kiểm tra và cập nhật Faculty
+        if (articleDTO.getFacultyId() != null) {
+            Faculty exFaculty = facultyRepository.findById(articleDTO.getFacultyId())
+                    .orElseThrow(() -> new DataNotFoundException("Cannot find this faculty with this id: " + articleDTO.getFacultyId()));
+            existingArticle.setFaculty(exFaculty);
+        }
+
+        // Kiểm tra và cập nhật User
+        if (articleDTO.getUserId() != null) {
+            User exUser = userRepository.findById(articleDTO.getUserId())
+                    .orElseThrow(() -> new DataNotFoundException("Cannot find this academic year with this id: " + articleDTO.getUserId()));
+            existingArticle.setUser(exUser);
+        }
+
+        // Kiểm tra và cập nhật các trường thông tin khác
+        if (articleDTO.getName() != null) {
+            existingArticle.setName(articleDTO.getName());
+        }
+        if (articleDTO.getDescription() != null) {
+            existingArticle.setDescription(articleDTO.getDescription());
+        }
+        if(Objects.equals(articleDTO.getStatus(), "accepted") || Objects.equals(articleDTO.getStatus(), "rejected")){
+            existingArticle.setStatus(articleDTO.getStatus());
+        }else{
+            existingArticle.setStatus("pending"); // Có thể cập nhật status mặc định ở đây
+        }
+        existingArticle.setSubmissionDate(articleDTO.getSubmissionDate() != null ? articleDTO.getSubmissionDate() : LocalDateTime.now());
+
+        // Lưu các thay đổi vào cơ sở dữ liệu và trả về bài báo đã được cập nhật
         return articleRepository.save(existingArticle);
     }
 
     @Override
     public void deleteArticle(Long id) throws Exception {
-
+        
     }
 
     @Override

@@ -256,6 +256,17 @@ public class ArticleController {
         }
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_STUDENT', 'ROLE_MARKETING_COORDINATOR')")
+    public ResponseEntity<?> updateArticle(@PathVariable Long id, @RequestBody ArticleDTO articleDTO){
+        try{
+            Article article = articleService.updateArticle(id, articleDTO);
+            return ResponseEntity.ok(article);
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/sendMail")
     @PreAuthorize("hasRole('ROLE_STUDENT')")
     public ResponseEntity<Boolean> create(
