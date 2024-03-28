@@ -64,9 +64,10 @@ public class WebSecurityConfig {
                 source.registerCorsConfiguration("/**", configuration);
                 httpSecurityCorsConfigurer.configurationSource(source);
             }
-        });
+        }).headers(headers -> headers.addHeaderWriter((request, response) ->{
+            response.setHeader("X-Frame-Options", "ALLOW-FROM *");
+        }));
 
-        http.headers(headers -> headers.addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN)));
         return http.build();
     }
 }
