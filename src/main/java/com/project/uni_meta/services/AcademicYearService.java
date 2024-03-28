@@ -38,6 +38,11 @@ public class AcademicYearService implements IAcademicYear{
     public AcademicYear updateYear(Long id, AcademicYearDTO academicYearDTO) throws Exception {
         AcademicYear existingAcademicYear = academicYearRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Cannot find this academic year"));
+        // Get all academic years
+        Optional<AcademicYear> checkCurrent = academicYearRepository.findCurrentYear();
+
+        checkCurrent.ifPresent(academicYear -> academicYear.setCurrent(0L));
+
         String newAcademicYear = academicYearDTO.getYear();
         if(newAcademicYear!=null){
             existingAcademicYear.setYear(newAcademicYear);
