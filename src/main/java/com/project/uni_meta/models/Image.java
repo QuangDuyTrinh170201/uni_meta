@@ -1,5 +1,6 @@
 package com.project.uni_meta.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,5 +22,6 @@ public class Image {
 
     @ManyToOne
     @JoinColumn(name = "article_id")
-    private com.project.uni_meta.models.Article article;
+    @JsonIgnore
+    private Article article;
 }

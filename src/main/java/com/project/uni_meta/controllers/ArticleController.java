@@ -54,12 +54,14 @@ public class ArticleController {
     @GetMapping("/all")
     public ResponseEntity<ArticleListResponse> getAllArticles(
             @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0", name = "user_id") Long userId,
+            @RequestParam(defaultValue = "0", name = "faculty_id") Long facultyId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit) {
 
         PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("id").ascending());
         Page<ArticleResponse> articlePage;
-        articlePage = articleService.getAllArticles(keyword, pageRequest);
+        articlePage = articleService.getAllArticles(keyword, userId, facultyId, pageRequest);
         int totalPages = articlePage.getTotalPages();
         List<ArticleResponse> articles = articlePage.getContent();
         return ResponseEntity.ok(ArticleListResponse.builder()

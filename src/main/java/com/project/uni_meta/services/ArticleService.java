@@ -29,9 +29,9 @@ public class ArticleService implements IArticleService{
     private final ImageRepository imageRepository;
     private final IMailService mailService;
     @Override
-    public Page<ArticleResponse> getAllArticles(String keyword, PageRequest pageRequest) {
+    public Page<ArticleResponse> getAllArticles(String keyword, Long userId, Long facultyId, PageRequest pageRequest) {
         Page<Article> articlePage;
-        articlePage = articleRepository.searchArticles(keyword, pageRequest);
+        articlePage = articleRepository.searchArticles(keyword, userId, facultyId, pageRequest);
         return articlePage.map(ArticleResponse::fromArticle);
     }
 

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "articles")
@@ -46,4 +47,7 @@ public class Article extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "faculty_id")
     private com.project.uni_meta.models.Faculty faculty;
+
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Image> articleImage;
 }

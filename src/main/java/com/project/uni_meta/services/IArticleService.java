@@ -13,7 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.List;
 
 public interface IArticleService {
-    public Page<ArticleResponse> getAllArticles(String keyword, PageRequest pageRequest);
+    public Page<ArticleResponse> getAllArticles(String keyword, Long userId, Long facultyId, PageRequest pageRequest);
 
     Article addArticle(ArticleDTO articleDTO) throws Exception;
 
