@@ -1,6 +1,7 @@
 package com.project.uni_meta.configurations;
 
 import com.project.uni_meta.filters.JwtTokenFilter;
+import com.project.uni_meta.models.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +39,7 @@ public class WebSecurityConfig {
                                     String.format("%s/users/login", apiPrefix),
                                     String.format("%s/users/register", apiPrefix)
                             ).permitAll()
+
                             .requestMatchers(GET,
                                     String.format("%s/roles**", apiPrefix),
                                     String.format("%s/faculties**", apiPrefix),

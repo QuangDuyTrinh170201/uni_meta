@@ -16,10 +16,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 @RequiredArgsConstructor
@@ -223,7 +222,7 @@ public class ArticleController {
         String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         //thêm UUID vào trước tên file để đảm bảo tên file là duy nhất
         String uniqueFileName = UUID.randomUUID().toString() + "_" + filename;
-        java.nio.file.Path uploadDir = Paths.get("uploads");
+        java.nio.file.Path uploadDir = Paths.get("upload_images");
         if(!Files.exists(uploadDir)){
             Files.createDirectories(uploadDir);
         }
@@ -241,7 +240,7 @@ public class ArticleController {
     @GetMapping("/images/{imageName}")
     public ResponseEntity<?> viewImage(@PathVariable String imageName){
         try{
-            Path imagePath = Paths.get("uploads/"+imageName);
+            Path imagePath = Paths.get("upload_images/"+imageName);
             UrlResource resource = new UrlResource(imagePath.toUri());
 
             if(resource.exists()){
@@ -251,7 +250,7 @@ public class ArticleController {
             }else{
                 return ResponseEntity.ok()
                         .contentType(MediaType.IMAGE_JPEG)
-                        .body(new UrlResource(Paths.get("uploads/notfound.jpg").toUri()));
+                        .body(new UrlResource(Paths.get("upload_images/notfound.jpg").toUri()));
             }
         }catch (Exception e){
             return ResponseEntity.notFound().build();
