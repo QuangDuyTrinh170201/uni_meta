@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface ArticleRepository extends JpaRepository<Article, Long> {
     @Query("SELECT a FROM Article a " +
             "WHERE (:keyword IS NULL OR :keyword = '' OR a.name LIKE %:keyword% OR a.description LIKE %:keyword%) " +
@@ -17,5 +19,6 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
                                                                @Param("facultyId") Long facultyId,
                                                                Pageable pageable);
 
+    List<Article> findByUserId(Long userId);
 
 }

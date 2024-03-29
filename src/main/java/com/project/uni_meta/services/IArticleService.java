@@ -29,4 +29,6 @@ public interface IArticleService {
     boolean sendMail(MailDTO mailDTO);
 
     List<Image> getImagesByArticleId(Long articleId);
+
+    public List<ArticleResponse> getArticlesByUserId(Long userId) throws DataNotFoundException;
 }

@@ -276,4 +276,14 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.sendMail(mailDTO));
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ArticleResponse>> getArticlesByUserId(@PathVariable Long userId) {
+        try {
+            List<ArticleResponse> articles = articleService.getArticlesByUserId(userId);
+            return ResponseEntity.ok(articles);
+        } catch (DataNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Return 404 if data not found
+        }
+    }
+
 }

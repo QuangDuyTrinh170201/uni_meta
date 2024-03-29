@@ -35,6 +35,11 @@ public class ArticleService implements IArticleService{
         return articlePage.map(ArticleResponse::fromArticle);
     }
 
+    public List<ArticleResponse> getArticlesByUserId(Long userId) throws DataNotFoundException {
+        List<Article> existingArticles = articleRepository.findByUserId(userId);
+        return existingArticles.stream().map(ArticleResponse::fromArticle).toList();
+    }
+
     @Override
     public Article addArticle(ArticleDTO articleDTO) throws Exception {
         AcademicYear currentAcademic = academicYearRepository.findById(articleDTO.getAcademicId())
