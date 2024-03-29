@@ -169,32 +169,38 @@ public class ArticleService implements IArticleService{
 
     @Override
     public boolean sendMail(MailDTO mailDTO) {
-        // xử lý trc khi tạo tt
         try {
             DataMailDTO dataMail = new DataMailDTO();
 
-            if(mailDTO.getFacultyId() == 1){
-                dataMail.setTo("marketingcoordinatorit@gmail.com");
-            }
-            if(mailDTO.getFacultyId() == 2){
-                dataMail.setTo("marketingcoordinatorbusiness@gmail.com");
-            }
-            if(mailDTO.getFacultyId() == 3){
-                dataMail.setTo("marketingcoordinatordesign@gmail.com");
-            }
-            dataMail.setSubject(Const.SEND_EMAIL_SUBJECT.CLIENT_NOTIFICATION);
+            List<User> findUserWithFaculty = userRepository.findByFacultyId(mailDTO.getFacultyId());
 
-            Map<String, Object> props = new HashMap<>();
-            props.put("url", mailDTO.getUrl());
-            dataMail.setProps(props);
+            // Danh sách địa chỉ email của các MARKETING_COORDINATOR
+            List<String> coordinatorEmails = new ArrayList<>();
 
-            mailService.sendHtmlMail(dataMail, Const.TEMPLATE_FILE_NAME.CLIENT_NOTIFICATION);
+            for (User user : findUserWithFaculty) {
+                if (user.getRole().getName().equals(Role.MARKETING_COORDINATOR)) {
+                    // Nếu người dùng có vai trò là MARKETING_COORDINATOR, thêm địa chỉ email của họ vào danh sách
+                    coordinatorEmails.add(user.getEmail());
+                }
+            }
+
+            // Gửi email cho tất cả MARKETING_COORDINATOR trong danh sách
+            for (String email : coordinatorEmails) {
+                dataMail.setTo(email);
+                dataMail.setSubject(Const.SEND_EMAIL_SUBJECT.CLIENT_NOTIFICATION);
+                Map<String, Object> props = new HashMap<>();
+                props.put("url", mailDTO.getUrl());
+                dataMail.setProps(props);
+                mailService.sendHtmlMail(dataMail, Const.TEMPLATE_FILE_NAME.CLIENT_NOTIFICATION);
+            }
+
             return true;
-        } catch (MessagingException exp){
+        } catch (MessagingException exp) {
             exp.printStackTrace();
+            return false;
         }
-        return false;
     }
+
 
     @Override
     public List<Image> getImagesByArticleId(Long articleId){
