@@ -31,4 +31,5 @@ public interface IArticleService {
     List<Image> getImagesByArticleId(Long articleId);
 
     public List<ArticleResponse> getArticlesByUserId(Long userId) throws DataNotFoundException;
+    public List<ArticleResponse> getArticlesByAllParam(String keyword, Long userId, Long facultyId, Long academicYearId);
 }

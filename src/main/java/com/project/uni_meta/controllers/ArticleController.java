@@ -69,6 +69,20 @@ public class ArticleController {
                 .build());
     }
 
+    @GetMapping("/noPaging")
+    public ResponseEntity<ArticleListResponse> getAllArticlesWithParam(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0", name = "user_id") Long userId,
+            @RequestParam(defaultValue = "0", name = "faculty_id") Long facultyId,
+            @RequestParam(defaultValue = "0", name = "academic_year_id") Long academicYearId) {
+
+        List<ArticleResponse> articles;
+        articles = articleService.getArticlesByAllParam(keyword, userId, facultyId, academicYearId);
+        return ResponseEntity.ok(ArticleListResponse.builder()
+                .articles(articles)
+                .build());
+    }
+
     @PostMapping(value = "/{articleId}/file")
     @PreAuthorize("hasRole('ROLE_STUDENT')")
     public ResponseEntity<?> updateArticleFile(@PathVariable("articleId") Long articleId,

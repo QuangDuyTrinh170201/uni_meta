@@ -39,6 +39,12 @@ public class ArticleService implements IArticleService{
         return articlePage.map(ArticleResponse::fromArticle);
     }
 
+    public List<ArticleResponse> getArticlesByAllParam(String keyword, Long userId, Long facultyId, Long academicYearId){
+        List<Article> articles;
+        articles = articleRepository.getAllWithKeywords(keyword, userId, facultyId, academicYearId);
+        return articles.stream().map(ArticleResponse::fromArticle).toList();
+    }
+
     public List<ArticleResponse> getArticlesByUserId(Long userId) throws DataNotFoundException {
         List<Article> existingArticles = articleRepository.findByUserId(userId);
         return existingArticles.stream().map(ArticleResponse::fromArticle).toList();

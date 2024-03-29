@@ -21,4 +21,14 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     List<Article> findByUserId(Long userId);
 
+    @Query("SELECT a FROM Article a " +
+            "WHERE (:keyword IS NULL OR :keyword = '' OR a.name LIKE %:keyword% OR a.description LIKE %:keyword%) " +
+            "AND (:userId IS NULL OR :userId = 0 OR a.user.id = :userId) " +
+            "AND (:facultyId IS NULL OR :facultyId = 0 OR a.faculty.id = :facultyId)" +
+            "AND (:academicYearId IS NULL OR :academicYearId = 0 OR a.academicYear.id = :academicYearId)")
+    List<Article> getAllWithKeywords(@Param("keyword") String keyword,
+                                     @Param("userId") Long userId,
+                                     @Param("facultyId") Long facultyId,
+                                     @Param("academicYearId") Long academicYearId);
+
 }
