@@ -38,7 +38,8 @@ public class WebSecurityConfig {
                     requests
                             .requestMatchers(
                                     String.format("%s/users/login", apiPrefix),
-                                    String.format("%s/users/register", apiPrefix)
+                                    String.format("%s/users/register", apiPrefix),
+                                    String.format("%s/users/sendMailChangePassword", apiPrefix)
                             ).permitAll()
 
                             .requestMatchers(GET,
@@ -47,7 +48,8 @@ public class WebSecurityConfig {
                                     String.format("%s/academic_years**", apiPrefix),
                                     String.format("%s/closures**", apiPrefix),
                                     String.format("%s/articles**",apiPrefix),
-                                    String.format("%s/articles/**", apiPrefix)
+                                    String.format("%s/articles/**", apiPrefix),
+                                    String.format("%s/comments*", apiPrefix)
                             ).permitAll()
                             .anyRequest().authenticated();
                 });

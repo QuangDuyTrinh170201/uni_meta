@@ -12,5 +12,11 @@ public class MailDTO {
 
     @JsonProperty("faculty_id")
     private Long facultyId;
+
     private String url;
+
+    @JsonProperty("username")
+    private String userName;
+
+    private String password;
 }

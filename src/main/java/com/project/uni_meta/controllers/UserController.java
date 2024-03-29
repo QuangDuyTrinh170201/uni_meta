@@ -1,8 +1,6 @@
 package com.project.uni_meta.controllers;
 
-import com.project.uni_meta.dtos.UpdateUserDTO;
-import com.project.uni_meta.dtos.UserDTO;
-import com.project.uni_meta.dtos.UserLoginDTO;
+import com.project.uni_meta.dtos.*;
 import com.project.uni_meta.exceptions.DataNotFoundException;
 import com.project.uni_meta.models.User;
 import com.project.uni_meta.services.IUserService;
@@ -21,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -136,6 +135,29 @@ public class UserController {
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while creating zip file");
+        }
+    }
+
+    @PostMapping("/sendMailChangePassword")
+    public ResponseEntity<Boolean> create(
+            @RequestBody MailDTO mailDTO
+    ) throws DataNotFoundException {
+        return ResponseEntity.ok(userService.sendMailPassword(mailDTO));
+    }
+
+    @PutMapping("/changePassword/{id}")
+    public ResponseEntity<?> changePassword(@PathVariable Long id, @RequestBody UserInforDTO userInforDTO, @RequestHeader("Authorization") String authorizationHeader){
+        try{
+            String extractedToken = authorizationHeader.substring(7);
+            User user = userService.getUserDetailsFromToken(extractedToken);
+            //Ensure that the user making the request matches the user being updated
+            if(!Objects.equals(user.getId(), id)){
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            User changUserPassword = userService.changePassword(id, userInforDTO);
+            return ResponseEntity.ok(changUserPassword);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().build();
         }
     }
 }

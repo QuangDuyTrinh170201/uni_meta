@@ -286,4 +286,15 @@ public class ArticleController {
         }
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_MARKETING_COORDINATOR')")
+    public ResponseEntity<?> deleteArticle(@PathVariable Long id){
+        try{
+            articleService.deleteArticle(id);
+            return ResponseEntity.ok(String.format("Article with id %d deleted successfully", id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

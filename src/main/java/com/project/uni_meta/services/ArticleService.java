@@ -16,6 +16,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -70,7 +74,7 @@ public class ArticleService implements IArticleService{
     public Article updateArticleFile(Long articleId, String fileName) throws DataNotFoundException {
         // Tìm bài báo theo ID
         Article existingArticle = articleRepository.findById(articleId)
-                .orElseThrow(() -> new DataNotFoundException("Không thể tìm thấy bài báo với id: " + articleId));
+                .orElseThrow(() -> new DataNotFoundException("Cannot find the article with id: " + articleId));
 
         // Thêm tên tệp vào cột filename của bài báo
         existingArticle.setFileName(fileName);
@@ -135,9 +139,14 @@ public class ArticleService implements IArticleService{
         if (articleDTO.getDescription() != null) {
             existingArticle.setDescription(articleDTO.getDescription());
         }
-        if(Objects.equals(articleDTO.getStatus(), "accepted") || Objects.equals(articleDTO.getStatus(), "rejected")){
+        if(Objects.equals(articleDTO.getStatus(), "accepted")){
             existingArticle.setStatus(articleDTO.getStatus());
-        }else{
+        } else if (Objects.equals(articleDTO.getStatus(), "rejected")){
+            Path rejectedFile = Paths.get("uploads", articleDTO.getFileName());
+            Path moveToRejectedFolder = Paths.get("files_rejected", articleDTO.getFileName());
+            Files.move(rejectedFile, moveToRejectedFolder);
+            existingArticle.setStatus(articleDTO.getStatus());
+        } else{
             existingArticle.setStatus("pending"); // Có thể cập nhật status mặc định ở đây
         }
         existingArticle.setSubmissionDate(articleDTO.getSubmissionDate() != null ? articleDTO.getSubmissionDate() : LocalDateTime.now());
@@ -148,7 +157,14 @@ public class ArticleService implements IArticleService{
 
     @Override
     public void deleteArticle(Long id) throws Exception {
-        
+        Optional<Article> existingArticle = articleRepository.findById(id);
+
+        if(existingArticle.isPresent()){
+            Path deleteFile = Paths.get("uploads/", existingArticle.get().getFileName());
+            File file = new File(String.valueOf(deleteFile));
+            file.delete();
+            existingArticle.ifPresent(articleRepository::delete);
+        }
     }
 
     @Override

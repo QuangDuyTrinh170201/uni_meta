@@ -2,6 +2,7 @@ package com.project.uni_meta.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.uni_meta.models.Article;
+import com.project.uni_meta.models.Comment;
 import com.project.uni_meta.models.Image;
 import lombok.*;
 
@@ -46,6 +47,9 @@ public class ArticleResponse extends BaseResponse{
     @JsonProperty("product_images")
     private List<Image> articleImage = new ArrayList<>();
 
+    @JsonProperty("article_comment")
+    private List<Comment> articleComment = new ArrayList<>();
+
     public static ArticleResponse fromArticle(Article article) {
         ArticleResponse articleResponse = null;
         articleResponse = ArticleResponse.builder()
@@ -63,6 +67,7 @@ public class ArticleResponse extends BaseResponse{
                 .userName(article.getUser().getUsername())
                 .fileName(article.getFileName())
                 .articleImage(article.getArticleImage())
+                .articleComment(article.getArticleComment())
                 .build();
         articleResponse.setCreatedAt(article.getCreatedAt());
         articleResponse.setUpdatedAt(article.getUpdatedAt());

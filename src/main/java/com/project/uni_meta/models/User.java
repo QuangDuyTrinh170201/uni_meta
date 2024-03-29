@@ -35,6 +35,9 @@ public class User extends BaseEntity implements UserDetails{
     @Column(name = "is_active", nullable = false)
     private boolean active;
 
+    @Column(name = "user_active", nullable = false)
+    private boolean userActive;
+
     @Column(name = "avatar")
     private String avatar;
 

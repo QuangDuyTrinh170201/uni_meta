@@ -1,8 +1,7 @@
 package com.project.uni_meta.services;
 
 import com.project.uni_meta.components.JwtTokenUtil;
-import com.project.uni_meta.dtos.UpdateUserDTO;
-import com.project.uni_meta.dtos.UserDTO;
+import com.project.uni_meta.dtos.*;
 import com.project.uni_meta.exceptions.DataNotFoundException;
 import com.project.uni_meta.exceptions.PermissionDenyException;
 import com.project.uni_meta.models.Faculty;
@@ -11,6 +10,10 @@ import com.project.uni_meta.models.User;
 import com.project.uni_meta.repositories.FacultyRepository;
 import com.project.uni_meta.repositories.RoleRepository;
 import com.project.uni_meta.repositories.UserRepository;
+import com.project.uni_meta.utils.Const;
+import com.project.uni_meta.utils.DataUtils;
+import jakarta.mail.MessagingException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,6 +35,7 @@ public class UserService implements IUserService{
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
     private final FacultyRepository facultyRepository;
+    private final MailService mailService;
 
     private final AuthenticationManager authenticationManager;
     @Override
@@ -51,6 +55,7 @@ public class UserService implements IUserService{
                 .password(userDTO.getPassword())
                 .email(userDTO.getEmail())
                 .active(true)
+                .userActive(false)
                 .build();
 
         if(userDTO.getFacultyId() != null){
@@ -150,6 +155,11 @@ public class UserService implements IUserService{
             existingUser.setActive(isActive);
         }
 
+        Boolean userActive = updatedUserDTO.getUserActive();
+        if(userActive != null){
+            existingUser.setUserActive(userActive);
+        }
+
         // Cập nhật trường roleId nếu có
         Long roleId = updatedUserDTO.getRoleId();
         if (roleId != null) {
@@ -169,5 +179,53 @@ public class UserService implements IUserService{
         }
 
         return userRepository.save(existingUser);
+    }
+
+    @Override
+    @Transactional
+    public boolean sendMailPassword(MailDTO mailDTO) throws DataNotFoundException {
+        // xử lý trc khi tạo tt
+        User checkUser = userRepository.findByUsername(mailDTO.getUserName()).orElseThrow(() -> new DataNotFoundException("Cannot find this user"));
+
+            String password = DataUtils.generateTempPwd(8);
+            String encodedPassword = passwordEncoder.encode(password);
+            checkUser.setPassword(encodedPassword);
+            checkUser.setUserActive(false);
+            userRepository.save(checkUser);
+            try {
+                DataMailDTO dataMail = new DataMailDTO();
+
+                dataMail.setTo(checkUser.getEmail());
+                dataMail.setSubject(Const.SEND_EMAIL_RESET_PASSWORD.CLIENT_PASSWORD);
+
+                Map<String, Object> props = new HashMap<>();
+                props.put("name", mailDTO.getUserName());
+                props.put("password", password);
+                dataMail.setProps(props);
+
+                mailService.sendHtmlMail(dataMail, Const.TEMPLATE_RESET_PASSWORD.CLIENT_PASSWORD);
+                return true;
+            } catch (MessagingException exp){
+                exp.printStackTrace();
+            }
+
+        return false;
+    }
+
+    @Override
+    public User changePassword(Long id, UserInforDTO userInforDTO) throws DataNotFoundException {
+        User findUser = userRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Cannot find this user"));
+
+        if(userInforDTO.getPassword()!=null && !userInforDTO.getPassword().isEmpty()){
+            if(!userInforDTO.getPassword().equals(userInforDTO.getRetypePassword())){
+                throw new DataNotFoundException("Password and retype password are not the same");
+            }
+            String newPassword = userInforDTO.getPassword();
+            String encodedPassword = passwordEncoder.encode(newPassword);
+            findUser.setPassword(encodedPassword);
+            findUser.setUserActive(true);
+            userRepository.save(findUser);
+        }
+        return findUser;
     }
 }

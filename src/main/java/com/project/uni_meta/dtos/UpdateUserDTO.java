@@ -17,6 +17,7 @@ public class UpdateUserDTO {
     @NotBlank(message = "Password is required")
     private String password;
 
+
     @JsonProperty("role_id")
     private Long roleId;
 
@@ -25,4 +26,7 @@ public class UpdateUserDTO {
 
     @JsonProperty("is_active")
     private Boolean isActive;
+
+    @JsonProperty("user_active")
+    private Boolean userActive;
 }
