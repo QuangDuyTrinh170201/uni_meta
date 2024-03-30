@@ -131,6 +131,17 @@ public class UserService implements IUserService{
     }
 
     @Override
+    @Transactional
+    public User updateUserImage(Long userId, String fileName) throws DataNotFoundException {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException(" Cannot find user with id %d: " + userId));
+
+        user.setAvatar(fileName);
+        return userRepository.save(user);
+    }
+
+    @Override
     public Optional<User> getUserById(Long id) throws Exception{
         try{
             Optional<User> user = userRepository.findById(id);

@@ -8,19 +8,19 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -159,5 +159,47 @@ public class UserController {
         }catch(Exception e){
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PostMapping("/avatar/{userId}")
+    public ResponseEntity<?> updateAvatar(@PathVariable Long userId,
+                                                @ModelAttribute MultipartFile file, @RequestHeader("Authorization") String authorizationHeader) {
+        try {
+            String extractedToken = authorizationHeader.substring(7);
+            User user = userService.getUserDetailsFromToken(extractedToken);
+            //Ensure that the user making the request matches the user being updated
+            if(!Objects.equals(user.getId(), userId)){
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            String imageUpdate = storeFile(file);
+            User updateAvatar = userService.updateUserImage(userId, imageUpdate);
+            return ResponseEntity.ok().body("Import image successfully!");
+        } catch (DataNotFoundException | IOException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String storeFile(MultipartFile file) throws IOException {
+        if (!isImageFile(file) || file.getOriginalFilename() == null) {
+            throw new IOException("Invalid image format");
+        }
+        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+        // Thêm UUID vào trước tên file để đảm bảo tên file là duy nhất
+        String uniqueFileName = UUID.randomUUID().toString() + "_" + filename;
+        Path uploadDir = Paths.get("upload_images");
+        if (!Files.exists(uploadDir)) {
+            Files.createDirectories(uploadDir);
+        }
+        // Đường dẫn đến file đích
+        Path destination = Paths.get(uploadDir.toString(), uniqueFileName);
+        Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+        return uniqueFileName;
+    }
+
+    private boolean isImageFile(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && contentType.startsWith("image/");
     }
 }

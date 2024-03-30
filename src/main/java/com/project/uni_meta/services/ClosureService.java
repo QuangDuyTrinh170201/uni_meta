@@ -9,9 +9,12 @@ import com.project.uni_meta.repositories.AcademicYearRepository;
 import com.project.uni_meta.repositories.ClosureRepository;
 import com.project.uni_meta.repositories.FacultyRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +44,14 @@ public class ClosureService implements IClosureService{
                     .orElseThrow(() -> new DataNotFoundException("Academic year not found with id: " + closureDTO.getAcademicYearId()));
         } catch (DataNotFoundException e) {
             throw new RuntimeException(e);
+        }
+
+        List<Closure> checkDuplicate = closureRepository.findAll();
+
+        for(Closure closures : checkDuplicate){
+            if(Objects.equals(closures.getFaculty().getId(), closureDTO.getFacultyId()) && Objects.equals(closures.getAcademicYear().getId(), closureDTO.getAcademicYearId())){
+                throw new DataIntegrityViolationException("Already has this closure date in faculty on year, you can change that closure date!");
+            }
         }
 
         Closure closure = Closure.builder()
@@ -77,6 +88,15 @@ public class ClosureService implements IClosureService{
                     .orElseThrow(() -> new DataNotFoundException("Academic year not found with id: " + closureDTO.getAcademicYearId()));
         } catch (DataNotFoundException e) {
             throw new RuntimeException(e);
+        }
+
+        List<Closure> checkDuplicate = closureRepository.findAll();
+
+        for(Closure closures : checkDuplicate){
+            if(Objects.equals(closures.getFaculty().getId(), closureDTO.getFacultyId()) && Objects.equals(closures.getAcademicYear().getId(), closureDTO.getAcademicYearId())
+                    && !Objects.equals(closures.getId(), id)){
+                throw new DataIntegrityViolationException("Already has this closure date in faculty on year, you can change that closure date!");
+            }
         }
 
         existingClosure.setDeadline(closureDTO.getDeadline());

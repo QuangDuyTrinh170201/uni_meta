@@ -20,6 +20,8 @@ public interface IUserService {
 
     public Optional<User> getUserById(Long id) throws Exception;
 
+    public User updateUserImage(Long userId, String fileName) throws DataNotFoundException;
+
     public User getUserDetailsFromToken(String token) throws Exception;
 
     public User updateUserInforByAdmin(Long userId, UpdateUserDTO updatedUserDTO) throws Exception;

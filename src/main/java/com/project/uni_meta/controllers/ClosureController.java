@@ -26,16 +26,25 @@ public class ClosureController {
 
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Closure> addClosure(@RequestBody ClosureDTO closureDTO) {
-        Closure newClosure = closureService.addClosure(closureDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newClosure);
+    public ResponseEntity<?> addClosure(@RequestBody ClosureDTO closureDTO) {
+        try{
+            Closure newClosure = closureService.addClosure(closureDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(newClosure);
+        }catch (Exception ex){
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Closure> updateClosure(@PathVariable Long id, @RequestBody ClosureDTO closureDTO) {
-        Closure updatedClosure = closureService.updateClosure(id, closureDTO);
-        return ResponseEntity.ok(updatedClosure);
+    public ResponseEntity<?> updateClosure(@PathVariable Long id, @RequestBody ClosureDTO closureDTO) {
+        try{
+            Closure updatedClosure = closureService.updateClosure(id, closureDTO);
+            return ResponseEntity.ok(updatedClosure);
+        }catch (Exception ex){
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
