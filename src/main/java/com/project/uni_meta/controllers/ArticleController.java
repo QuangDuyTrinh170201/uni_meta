@@ -132,6 +132,16 @@ public class ArticleController {
                         .contentType(mediaType)
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                         .body(resource);
+            } else if (!resource.exists()) {
+                MediaType mediaType = MediaType.parseMediaType(
+                        determineMimeType(fileName));
+
+                Path filePathReject = Paths.get("files_rejected", fileName);
+                UrlResource resourceReject = new UrlResource(filePathReject.toUri());
+                return ResponseEntity.ok()
+                        .contentType(mediaType)
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resourceReject.getFilename() + "\"")
+                        .body(resourceReject);
             } else {
                 return ResponseEntity.badRequest().body("Ops, somethings wrong T.T");
             }
@@ -173,6 +183,20 @@ public class ArticleController {
                             .contentType(MediaType.APPLICATION_PDF)
                             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdfResource.getFilename() + "\"")
                             .body(pdfResource);
+            }
+            else if(!resource.exists()){
+                Path filePathRejected = Paths.get("files_rejected", fileName);
+
+                MediaType mediaType = MediaType.parseMediaType(
+                        determineMimeType(fileName));
+                // Nếu là file docx, chuyển đổi sang PDF và trả về
+                File convertedFile = convertDocxToPdf(filePathRejected);
+                UrlResource pdfResource = new UrlResource(convertedFile.toURI());
+
+                return ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_PDF)
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdfResource.getFilename() + "\"")
+                        .body(pdfResource);
             }
 
             return ResponseEntity.badRequest().body("Ops, something's wrong T.T");
@@ -296,7 +320,7 @@ public class ArticleController {
             List<ArticleResponse> articles = articleService.getArticlesByUserId(userId);
             return ResponseEntity.ok(articles);
         } catch (DataNotFoundException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Return 404 if data not found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
