@@ -13,4 +13,6 @@ public interface IClosureService {
     Closure updateClosure(Long id, ClosureDTO closureDTO);
 
     void deleteClosure(Long id);
+
+    public List<Closure> getClosureByAcademicId(Long id);
 }

@@ -24,6 +24,16 @@ public class ClosureController {
         return ResponseEntity.ok(closures);
     }
 
+    @GetMapping("/academic/{academicId}")
+    public ResponseEntity<?> getClosureByAcademicYear(@PathVariable Long academicId) {
+        try{
+            List<Closure> closures = closureService.getClosureByAcademicId(academicId);
+            return ResponseEntity.ok(closures);
+        }catch (Exception ex){
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> addClosure(@RequestBody ClosureDTO closureDTO) {

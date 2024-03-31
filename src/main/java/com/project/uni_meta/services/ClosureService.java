@@ -118,4 +118,13 @@ public class ClosureService implements IClosureService{
         }
         closureRepository.deleteById(id);
     }
+
+    @Override
+    public List<Closure> getClosureByAcademicId(Long id){
+        List<Closure> findByAcademic = closureRepository.findByAcademicYearId(id);
+        if(findByAcademic.isEmpty()){
+            throw new DataIntegrityViolationException("Cannot find any closures with this academic year!");
+        }
+        return findByAcademic;
+    }
 }
