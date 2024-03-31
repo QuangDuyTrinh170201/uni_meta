@@ -95,7 +95,7 @@ public class UserService implements IUserService{
         response.put("roleId", existingUser.getRole().getId());
         response.put("roleName", existingUser.getRole().getName()); // Assuming Role is a field in User entity
         Long checkFaculty = existingUser.getRole().getId();
-        if(checkFaculty == 2 || checkFaculty == 3 || checkFaculty == 4){
+        if(checkFaculty == 2 || checkFaculty == 3){
             response.put("facultyId", existingUser.getFaculty().getId());
             response.put("facultyName", existingUser.getFaculty().getName());
         }
@@ -126,7 +126,7 @@ public class UserService implements IUserService{
         if (user.isPresent()) {
             return user.get();
         } else {
-            throw new Exception("User not found");
+            throw new Exception("Cannot find this user");
         }
     }
 
