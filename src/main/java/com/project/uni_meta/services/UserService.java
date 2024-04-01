@@ -22,6 +22,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.Subject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,10 @@ public class UserService implements IUserService{
         String username = userDTO.getUserName();
         //check exist username
         if(userRepository.existsByUsername(username)){
-            throw new DataIntegrityViolationException("Username already exists");
+            throw new DataIntegrityViolationException("Username already exists!");
+        }
+        if(userRepository.existsByEmail(userDTO.getEmail())){
+            throw new DataIntegrityViolationException("Email already exists!");
         }
         Role role = roleRepository.findById(userDTO.getRoleId())
                 .orElseThrow(() -> new DataNotFoundException("Role Not Found"));
@@ -68,6 +72,9 @@ public class UserService implements IUserService{
         String encodedPassword = passwordEncoder.encode(password);
         newUser.setPassword(encodedPassword);
 
+        if(userDTO.getRoleId() != 1){
+            sendMailRegister(userDTO);
+        }
         return userRepository.save(newUser);
     }
 
@@ -223,6 +230,29 @@ public class UserService implements IUserService{
         return false;
     }
 
+    @Transactional
+    public boolean sendMailRegister(UserDTO userDTO) throws DataNotFoundException{
+        String password = userDTO.getPassword();
+        try{
+            DataMailDTO dataMailDTO = new DataMailDTO();
+
+            dataMailDTO.setTo(userDTO.getEmail());
+            dataMailDTO.setSubject(Const.SEND_EMAIL_NEW_ACCOUNT.CLIENT_PASSWORD);
+
+            Map<String, Object> props = new HashMap<>();
+            props.put("username", userDTO.getUserName());
+            props.put("password", password);
+            dataMailDTO.setProps(props);
+
+            mailService.sendHtmlMail(dataMailDTO, Const.TEMPLATE_REGISTER.CLIENT_REGISTER);
+            return true;
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     @Override
     public User changePassword(Long id, UserInforDTO userInforDTO) throws DataNotFoundException {
         User findUser = userRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Cannot find this user"));
@@ -238,5 +268,16 @@ public class UserService implements IUserService{
             userRepository.save(findUser);
         }
         return findUser;
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long id) throws Exception {
+        User findUser = userRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Cannot find user, please check the id!"));
+        if(findUser.isActive()){
+           throw new Exception("Cannot delete activating user!!");
+        }else{
+            userRepository.delete(findUser);
+        }
     }
 }

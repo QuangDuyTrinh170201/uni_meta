@@ -29,4 +29,6 @@ public interface IUserService {
     public boolean sendMailPassword(MailDTO mailDTO) throws DataNotFoundException;
 
     public User changePassword(Long id, UserInforDTO userInforDTO) throws DataNotFoundException;
+
+    public void deleteUser(Long id) throws Exception;
 }
