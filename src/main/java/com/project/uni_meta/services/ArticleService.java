@@ -12,6 +12,7 @@ import com.project.uni_meta.utils.Const;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class ArticleService implements IArticleService{
     private final UserRepository userRepository;
     private final ImageRepository imageRepository;
     private final IMailService mailService;
+    private final ClosureRepository closureRepository;
     @Override
     public Page<ArticleResponse> getAllArticles(String keyword, Long userId, Long facultyId, PageRequest pageRequest) {
         Page<Article> articlePage;
@@ -91,6 +93,10 @@ public class ArticleService implements IArticleService{
     public Image createArticleImage(Long articleId, ArticleImageDTO articleImageDTO) throws Exception{
         Article existingArticle = articleRepository.findById(articleId)
                 .orElseThrow(() -> new DataNotFoundException("Cannot find this Article!"));
+        List<Image> checkMaximum = imageRepository.findByArticleId(articleId);
+//        if(checkMaximum.size()>=3){
+//            throw new Exception("Cannot import any image, maximum is 3 images per article!");
+//        }
         Image newArticleImage = Image.builder()
                 .article(existingArticle)
                 .imageUrl(articleImageDTO.getImageUrl())
@@ -211,5 +217,18 @@ public class ArticleService implements IArticleService{
     @Override
     public List<Image> getImagesByArticleId(Long articleId){
         return imageRepository.findByArticleId(articleId);
+    }
+
+    @Override
+    public void deleteImage(Long id){
+        Optional<Image> findImage = imageRepository.findById(id);
+        if(findImage.isEmpty())
+        {
+            throw new DataIntegrityViolationException("Cannot find this image!");
+        }
+        Path deleteImage = Paths.get("upload_images/", findImage.get().getImageUrl());
+        File file = new File(String.valueOf(deleteImage));
+        file.delete();
+        findImage.ifPresent(imageRepository::delete);
     }
 }

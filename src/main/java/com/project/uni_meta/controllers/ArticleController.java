@@ -335,4 +335,15 @@ public class ArticleController {
         }
     }
 
+    @DeleteMapping("/image/{id}")
+    @PreAuthorize("hasRole('ROLE_STUDENT')")
+    public ResponseEntity<?> deleteImage(@PathVariable Long id){
+        try{
+            articleService.deleteImage(id);
+            return ResponseEntity.ok("Delete image successfully");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

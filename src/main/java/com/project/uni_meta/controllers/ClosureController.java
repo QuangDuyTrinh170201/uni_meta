@@ -38,8 +38,9 @@ public class ClosureController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> addClosure(@RequestBody ClosureDTO closureDTO) {
         try{
-            Closure newClosure = closureService.addClosure(closureDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(newClosure);
+            Closure newClosure;
+            newClosure = closureService.addClosure(closureDTO);
+            return ResponseEntity.ok().body(newClosure);
         }catch (Exception ex){
             return ResponseEntity.badRequest().body(ex.getMessage());
         }

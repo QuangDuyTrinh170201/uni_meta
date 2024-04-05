@@ -32,4 +32,5 @@ public interface IArticleService {
 
     public List<ArticleResponse> getArticlesByUserId(Long userId) throws DataNotFoundException;
     public List<ArticleResponse> getArticlesByAllParam(String keyword, Long userId, Long facultyId, Long academicYearId);
+    public void deleteImage(Long id);
 }
