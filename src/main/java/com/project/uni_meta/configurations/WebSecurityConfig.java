@@ -39,7 +39,8 @@ public class WebSecurityConfig {
                             .requestMatchers(
                                     String.format("%s/users/login", apiPrefix),
                                     String.format("%s/users/register", apiPrefix),
-                                    String.format("%s/users/sendMailChangePassword", apiPrefix)
+                                    String.format("%s/users/sendMailChangePassword", apiPrefix),
+                                    String.format("%s/users/images/*", apiPrefix)
                             ).permitAll()
 
                             .requestMatchers(GET,
