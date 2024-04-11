@@ -29,6 +29,8 @@ public class ArticleDTO {
     @NotBlank(message = "Status is required")
     private String status;
 
+    private Boolean publish;
+
     @NotBlank(message = "View article is required")
     private Long view;
 

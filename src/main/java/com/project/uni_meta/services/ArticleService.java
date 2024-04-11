@@ -70,6 +70,7 @@ public class ArticleService implements IArticleService{
         LocalDateTime submissionDate = articleDTO.getSubmissionDate() == null ? LocalDateTime.now() : articleDTO.getSubmissionDate();
         newArticle.setSubmissionDate(submissionDate);
         newArticle.setStatus(articleDTO.getStatus());
+        newArticle.setPublish(false);
         newArticle.setView(articleDTO.getView());
 
         newArticle = articleRepository.save(newArticle);
@@ -135,6 +136,10 @@ public class ArticleService implements IArticleService{
             Faculty exFaculty = facultyRepository.findById(articleDTO.getFacultyId())
                     .orElseThrow(() -> new DataNotFoundException("Cannot find this faculty with this id: " + articleDTO.getFacultyId()));
             existingArticle.setFaculty(exFaculty);
+        }
+
+        if(articleDTO.getPublish() != null){
+            existingArticle.setPublish(articleDTO.getPublish());
         }
 
         // Kiểm tra và cập nhật User

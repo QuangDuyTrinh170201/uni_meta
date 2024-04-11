@@ -36,6 +36,9 @@ public class Article extends BaseEntity{
     @Column(name = "view", nullable = false)
     private Long view;
 
+    @Column(name = "publish")
+    private Boolean publish;
+
     @ManyToOne
     @JoinColumn(name = "academic_id")
     private com.project.uni_meta.models.AcademicYear academicYear;

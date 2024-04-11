@@ -24,6 +24,7 @@ public class ArticleResponse extends BaseResponse{
     private LocalDateTime submissionDate;
     private String status;
     private Long view;
+    private Boolean publish;
 
 
     @JsonProperty("faculty_name")
@@ -58,6 +59,7 @@ public class ArticleResponse extends BaseResponse{
                 .description(article.getDescription())
                 .submissionDate(article.getSubmissionDate())
                 .status(article.getStatus())
+                .publish(article.getPublish())
                 .view(article.getView())
                 .facultyId(article.getFaculty().getId())
                 .facultyName(article.getFaculty().getName())
